@@ -12,12 +12,12 @@ export const useCruxAPI = () => {
   const { getFromCache, addToCache, isCached } = useCache();
   const abortControllerRef = useRef(null);
 
-  const getCacheKey = useCallback((urls, source, pageNumber, pageSize) => {
-    return `${source}|${urls.join(",")}|${pageNumber}|${pageSize}`;
+  const getCacheKey = useCallback((urls, source) => {
+    return `${source}|${urls.join(",")}`;
   }, []);
 
   const fetchCruxData = useCallback(
-    async (urls, source = "crux-api", pageNumber = 1, pageSize = 10) => {
+    async (urls, source = "crux-api") => {
       try {
         // Cancel previous request if any
         if (abortControllerRef.current) {
@@ -27,13 +27,13 @@ export const useCruxAPI = () => {
         // Create new abort controller
         abortControllerRef.current = new AbortController();
 
-        const cacheKey = getCacheKey(urls, source, pageNumber, pageSize);
+        const cacheKey = getCacheKey(urls, source);
 
         // Check cache for single URL requests
         if (urls.length === 1 && isCached(cacheKey)) {
           const cachedData = getFromCache(cacheKey);
           if (cachedData) {
-            setData(cachedData.data, cachedData.pagination, source, urls);
+            setData(cachedData.data, source, urls);
             return;
           }
         }
@@ -50,11 +50,7 @@ export const useCruxAPI = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            urls,
-            pageNumber,
-            pageSize,
-          }),
+          body: JSON.stringify({ urls }),
           signal: abortControllerRef.current.signal,
         });
 
@@ -74,7 +70,7 @@ export const useCruxAPI = () => {
           addToCache(cacheKey, result);
         }
 
-        setData(result.data, result.pagination, source, urls);
+        setData(result.data, source, urls);
       } catch (error) {
         if (error.name !== "AbortError") {
           setError(error.message);

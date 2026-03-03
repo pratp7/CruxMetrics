@@ -1,6 +1,5 @@
 // Core Constants
 export const MAX_URLS_PER_REQUEST = 5;
-export const DEFAULT_PAGE_SIZE = 10;
 export const CACHE_TTL = 300; // 5 minutes in seconds
 
 // Web Vitals Thresholds

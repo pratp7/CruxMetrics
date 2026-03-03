@@ -31,7 +31,14 @@ const metricReducer = (state, action) => {
       return {
         ...state,
         data: action.payload.data,
-        pagination: action.payload.pagination,
+        pagination: {
+          ...state.pagination,
+          pageNumber: 1,
+          totalRows: action.payload.data.rows.length,
+          totalPages: Math.ceil(
+            action.payload.data.rows.length / state.pagination.pageSize,
+          ),
+        },
         source: action.payload.source,
         urls: action.payload.urls,
         loading: false,
@@ -73,7 +80,14 @@ const metricReducer = (state, action) => {
     case "SET_PAGINATION":
       return {
         ...state,
-        pagination: { ...state.pagination, ...action.payload },
+        pagination: {
+          ...state.pagination,
+          ...action.payload,
+          totalPages: Math.ceil(
+            state.data.rows.length /
+              (action.payload.pageSize ?? state.pagination.pageSize),
+          ),
+        },
       };
 
     case "CLEAR_DATA":
@@ -91,10 +105,10 @@ export const MetricsProvider = ({ children }) => {
     dispatch({ type: "SET_LOADING", payload: loading });
   }, []);
 
-  const setData = useCallback((data, pagination, source, urls) => {
+  const setData = useCallback((data, source, urls) => {
     dispatch({
       type: "SET_DATA",
-      payload: { data, pagination, source, urls },
+      payload: { data, source, urls },
     });
   }, []);
 

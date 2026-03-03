@@ -221,31 +221,15 @@ export const calculateAggregations = (rows, source) => {
 };
 
 /**
- * Format response with pagination
+ * Format response (all rows, no server-side pagination)
  */
-export const formatPaginatedResponse = (
-  rows,
-  columns,
-  pageNumber = 1,
-  pageSize = 10,
-  aggregated = null,
-) => {
-  const totalRows = rows.length;
-  const startIndex = (pageNumber - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedRows = rows.slice(startIndex, endIndex);
-
+export const formatResponse = (rows, columns, aggregated = null) => {
   return {
     data: {
-      rows: paginatedRows,
+      rows,
       columns,
       ...(aggregated && { aggregated }),
     },
-    pagination: {
-      totalRows,
-      pageSize,
-      pageNumber,
-      totalPages: Math.ceil(totalRows / pageSize),
-    },
+    totalRows: rows.length,
   };
 };

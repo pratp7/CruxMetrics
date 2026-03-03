@@ -5,7 +5,7 @@ import { useMetrics } from "../context/MetricsContext";
 
 const PaginationComponent = () => {
   const { pagination } = useMetrics();
-  const { goToPage, nextPage, prevPage, setPageSize } = usePagination();
+  const { nextPage, prevPage, setPageSize } = usePagination();
 
   return (
     <div style={{ display: "flex", alignItems: "center", marginTop: 16 }}>

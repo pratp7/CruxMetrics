@@ -3,18 +3,14 @@ import {
   validateOriginForBigQuery,
 } from "../utils/validators.js";
 import { CruxError } from "../utils/errorHandler.js";
-import {
-  ERROR_CODES,
-  DEFAULT_PAGE_SIZE,
-  MAX_URLS_PER_REQUEST,
-} from "../utils/constants.js";
+import { ERROR_CODES, MAX_URLS_PER_REQUEST } from "../utils/constants.js";
 import { fetchCruxData } from "../services/cruxService.js";
 import { queryCruxBigQuery } from "../services/bigQueryService.js";
 import {
   processCruxApiResponse,
   processBigQueryResponse,
   calculateAggregations,
-  formatPaginatedResponse,
+  formatResponse,
 } from "../services/responseProcessor.js";
 import { logger } from "../utils/logger.js";
 
@@ -24,7 +20,7 @@ import { logger } from "../utils/logger.js";
  */
 export const getCruxAPI = async (req, res, next) => {
   try {
-    const { urls, pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE } = req.body;
+    const { urls } = req.body;
     const apiKey = process.env.CRUX_API_KEY || null;
 
     // Validate URLs
@@ -62,19 +58,12 @@ export const getCruxAPI = async (req, res, next) => {
         ? calculateAggregations(rows, "crux-api")
         : null;
 
-    // Format paginated response
-    const paginated = formatPaginatedResponse(
-      rows,
-      columns,
-      pageNumber,
-      pageSize,
-      aggregated,
-    );
+    const formatted = formatResponse(rows, columns, aggregated);
 
     res.status(200).json({
       success: true,
       source: "crux-api",
-      ...paginated,
+      ...formatted,
       cachedAt: null,
     });
   } catch (error) {
@@ -88,7 +77,7 @@ export const getCruxAPI = async (req, res, next) => {
  */
 export const getCruxBigQuery = async (req, res, next) => {
   try {
-    const { urls, pageNumber = 1, pageSize = DEFAULT_PAGE_SIZE } = req.body;
+    const { urls } = req.body;
     const projectId = process.env.GOOGLE_PROJECT_ID || null;
 
     // Validate URLs
@@ -141,19 +130,12 @@ export const getCruxBigQuery = async (req, res, next) => {
         ? calculateAggregations(rows, "crux-bigquery")
         : null;
 
-    // Format paginated response
-    const paginated = formatPaginatedResponse(
-      rows,
-      columns,
-      pageNumber,
-      pageSize,
-      aggregated,
-    );
+    const formatted = formatResponse(rows, columns, aggregated);
 
     res.status(200).json({
       success: true,
       source: "crux-bigquery",
-      ...paginated,
+      ...formatted,
     });
   } catch (error) {
     next(error);
