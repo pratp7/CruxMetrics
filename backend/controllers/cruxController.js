@@ -44,10 +44,11 @@ export const getCruxAPI = async (req, res, next) => {
 
     logger.info("Processing CrUX API request", {
       urlCount: validation.urls.length,
+      useDummyData: true,
     });
 
     // Fetch data from CrUX API or use dummy data
-    const apiResponse = await fetchCruxData(validation.urls, apiKey, true); // useDummyData = true
+    const apiResponse = await fetchCruxData(validation.urls, apiKey, true);
 
     // Process response to standardized format
     const { rows, columns } = processCruxApiResponse(

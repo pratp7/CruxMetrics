@@ -1,6 +1,6 @@
 import axios from "axios";
 import { logger } from "../utils/logger.js";
-import { CruxError, createErrorResponse } from "../utils/errorHandler.js";
+import { CruxError } from "../utils/errorHandler.js";
 import { ERROR_CODES } from "../utils/constants.js";
 import cruxDummyData from "../config/cruxApiDummyData.js"; // now exports JS object
 
@@ -17,7 +17,7 @@ export const fetchCruxData = async (
   useDummyData = true,
 ) => {
   try {
-    logger.info("Fetching CrUX data", { urls, useDummyData });
+    logger.info("Fetching CrUX data", { urlCount: urls.length, useDummyData });
 
     // Use dummy data for now (until API key is provided)
     if (useDummyData || !apiKey) {
@@ -32,11 +32,7 @@ export const fetchCruxData = async (
         const response = await axios.post(
           CRUX_API_ENDPOINT,
           {
-            record: {
-              key: {
-                url: url,
-              },
-            },
+            url,
           },
           {
             params: {
@@ -49,7 +45,7 @@ export const fetchCruxData = async (
         results[url] = processCruxApiResponse(response.data);
       } catch (error) {
         logger.error(`Error fetching CrUX data for ${url}`, {
-          error: error.message,
+          error: error.response?.data?.error?.message || error.message,
         });
 
         // If API fails and dummy data is enabled, use dummy for this URL
@@ -78,13 +74,38 @@ export const fetchCruxData = async (
  * Process CrUX API response to extract metrics
  */
 const processCruxApiResponse = (data) => {
-  const metrics = data.metrics || {};
+  const metrics = data?.record?.metrics || data?.metrics || {};
+
+  const getMetricValue = (metricName) => {
+    const metric = metrics[metricName];
+    if (!metric) return 0;
+
+    if (metric.percentiles?.p75 !== undefined) {
+      return metric.percentiles.p75;
+    }
+
+    if (
+      Array.isArray(metric.percentile_values) &&
+      metric.percentile_values[0] !== undefined
+    ) {
+      return metric.percentile_values[0];
+    }
+
+    if (
+      Array.isArray(metric.percentiles) &&
+      metric.percentiles[0] !== undefined
+    ) {
+      return metric.percentiles[0];
+    }
+
+    return 0;
+  };
 
   return {
-    lcp: metrics.largest_contentful_paint?.percentile_values?.[0] / 1000 || 0, // Convert ms to seconds
-    inp: metrics.interaction_to_next_paint?.percentile_values?.[0] || 0, // Already in ms
-    fcp: metrics.first_contentful_paint?.percentile_values?.[0] / 1000 || 0, // Convert ms to seconds
-    cls: metrics.cumulative_layout_shift?.percentile_values?.[0] || 0, // Already a score
+    lcp: getMetricValue("largest_contentful_paint") / 1000,
+    inp: getMetricValue("interaction_to_next_paint"),
+    fcp: getMetricValue("first_contentful_paint") / 1000,
+    cls: getMetricValue("cumulative_layout_shift"),
   };
 };
 

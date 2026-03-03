@@ -10,7 +10,7 @@ import {
   Chip,
 } from "@mui/material";
 import { useMetrics } from "../context/MetricsContext";
-import { METRIC_COLUMNS } from "../config/metricsConfig";
+import { API_SOURCES } from "../config/metricsConfig";
 
 const operators = [
   { value: "gt", label: ">" },
@@ -18,11 +18,33 @@ const operators = [
   { value: "eq", label: "=" },
 ];
 
+const BIGQUERY_FILTER_FIELDS = [
+  { field: "goodDensity", headerName: "Good (%)" },
+  { field: "niDensity", headerName: "Needs Improvement (%)" },
+  { field: "poorDensity", headerName: "Poor (%)" },
+  { field: "totalCount", headerName: "Sample Size" },
+];
+
 const FilterBar = () => {
-  const { filters, addFilter, removeFilter, clearFilters } = useMetrics();
-  const [metric, setMetric] = useState("url");
+  const { filters, addFilter, removeFilter, clearFilters, source, data } =
+    useMetrics();
+
+  const filterFields =
+    source === API_SOURCES.CRUX_BIGQUERY
+      ? BIGQUERY_FILTER_FIELDS
+      : (data.columns || [])
+          .filter((col) => col.field !== "url")
+          .map((col) => ({ field: col.field, headerName: col.headerName }));
+
+  const [metric, setMetric] = useState(filterFields[0]?.field || "");
   const [operator, setOperator] = useState("gt");
   const [value, setValue] = useState("");
+
+  React.useEffect(() => {
+    if (!filterFields.some((field) => field.field === metric)) {
+      setMetric(filterFields[0]?.field || "");
+    }
+  }, [filterFields, metric]);
 
   const handleAdd = () => {
     if (!metric || !operator || value === "") return;
@@ -37,14 +59,14 @@ const FilterBar = () => {
 
   return (
     <Box display="flex" alignItems="center" mb={2} flexWrap="wrap">
-      <FormControl size="small" style={{ minWidth: 120, marginRight: 8 }}>
+      <FormControl size="small" style={{ minWidth: 220, marginRight: 8 }}>
         <InputLabel>Metric</InputLabel>
         <Select
           value={metric}
           label="Metric"
           onChange={(e) => setMetric(e.target.value)}
         >
-          {METRIC_COLUMNS.map((col) => (
+          {filterFields.map((col) => (
             <MenuItem key={col.field} value={col.field}>
               {col.headerName}
             </MenuItem>

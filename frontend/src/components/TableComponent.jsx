@@ -5,7 +5,7 @@ import { useFilters } from "../hooks/useFilters";
 import { useSort } from "../hooks/useSort";
 
 const TableComponent = () => {
-  const { data, loading, pagination } = useMetrics();
+  const { data, loading, pagination, setPagination } = useMetrics();
   const { filteredRows } = useFilters();
   const { sortedRows, handleSort, sort } = useSort(filteredRows);
 
@@ -19,8 +19,18 @@ const TableComponent = () => {
         rows={rows}
         columns={columns}
         loading={loading}
-        pageSize={pagination.pageSize}
-        rowsPerPageOptions={[5, 10, 20, 50]}
+        paginationModel={{
+          page: Math.max((pagination.pageNumber || 1) - 1, 0),
+          pageSize: pagination.pageSize || 10,
+        }}
+        onPaginationModelChange={(model) => {
+          setPagination({
+            pageNumber: model.page + 1,
+            pageSize: model.pageSize,
+          });
+        }}
+        pageSizeOptions={[5, 10, 20, 50]}
+        disableRowSelectionOnClick
         paginationMode="client"
         onSortModelChange={(model) => {
           if (model.length) {

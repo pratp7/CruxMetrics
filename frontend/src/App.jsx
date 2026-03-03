@@ -5,7 +5,6 @@ import { MetricsProvider } from "./context/MetricsContext";
 import { CacheProvider } from "./context/CacheContext";
 import SearchComponent from "./components/SearchComponent";
 import TableComponent from "./components/TableComponent";
-import PaginationComponent from "./components/PaginationComponent";
 import LoadingSpinner from "./components/LoadingSpinner";
 import ErrorBoundary from "./components/ErrorBoundary";
 import EmptyState from "./components/EmptyState";
@@ -29,7 +28,6 @@ const AppContent = () => {
       {!loading && !error && data.rows && data.rows.length > 0 ? (
         <>
           <TableComponent />
-          <PaginationComponent />
         </>
       ) : null}
 

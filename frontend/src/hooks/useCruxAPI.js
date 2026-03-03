@@ -3,12 +3,18 @@ import { useMetrics } from "../context/MetricsContext";
 import { useCache } from "../context/CacheContext";
 
 // API base is relative so it works in codespaces / forwarded ports
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+const API_BASE_URL = import.meta.env.DEV
+  ? ""
+  : import.meta.env.VITE_API_BASE_URL || "";
 
 export const useCruxAPI = () => {
   const { setLoading, setData, setError } = useMetrics();
   const { getFromCache, addToCache, isCached } = useCache();
   const abortControllerRef = useRef(null);
+
+  const getCacheKey = useCallback((urls, source, pageNumber, pageSize) => {
+    return `${source}|${urls.join(",")}|${pageNumber}|${pageSize}`;
+  }, []);
 
   const fetchCruxData = useCallback(
     async (urls, source = "crux-api", pageNumber = 1, pageSize = 10) => {
@@ -21,11 +27,13 @@ export const useCruxAPI = () => {
         // Create new abort controller
         abortControllerRef.current = new AbortController();
 
+        const cacheKey = getCacheKey(urls, source, pageNumber, pageSize);
+
         // Check cache for single URL requests
-        if (urls.length === 1 && isCached(urls[0])) {
-          const cachedData = getFromCache(urls[0]);
+        if (urls.length === 1 && isCached(cacheKey)) {
+          const cachedData = getFromCache(cacheKey);
           if (cachedData) {
-            setData(cachedData, cachedData.pagination, source, urls);
+            setData(cachedData.data, cachedData.pagination, source, urls);
             return;
           }
         }
@@ -63,10 +71,10 @@ export const useCruxAPI = () => {
 
         // Cache single URL results
         if (urls.length === 1) {
-          addToCache(urls[0], result);
+          addToCache(cacheKey, result);
         }
 
-        setData(result, result.pagination, source, urls);
+        setData(result.data, result.pagination, source, urls);
       } catch (error) {
         if (error.name !== "AbortError") {
           setError(error.message);
@@ -76,7 +84,15 @@ export const useCruxAPI = () => {
         setLoading(false);
       }
     },
-    [setLoading, setData, setError, getFromCache, addToCache, isCached],
+    [
+      setLoading,
+      setData,
+      setError,
+      getFromCache,
+      addToCache,
+      isCached,
+      getCacheKey,
+    ],
   );
 
   const abortRequest = useCallback(() => {
