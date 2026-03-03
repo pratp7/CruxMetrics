@@ -2,7 +2,14 @@
 
 CruxMetrics is a web performance analytics tool that uses Google Chrome UX Report (CrUX) data to help customers identify slow pages and provide actionable insights. This repository contains both a **React frontend** and a **Node.js/Express backend** with dummy data handling and future-ready CrUX API integrations.
 
+> **⚠️ Note on CrUX API Data**
+> The CrUX API integration is currently returning **hardcoded dummy data**. This is because we ran into issues obtaining/validating the CrUX API key. The dummy data in `backend/config/cruxApiDummyData.js` simulates realistic API responses so that the full UI and data-flow can be exercised end-to-end. Once a valid API key is available, swap `useDummyData = false` in `cruxService.js` and set `CRUX_API_KEY` in your `.env` file to enable live data.
+
 ---
+
+ScreenShots -
+![alt text](image-3.png)
+![alt text](image-4.png)
 
 ## 📁 Project Structure
 
@@ -21,32 +28,47 @@ CruxMetrics is a web performance analytics tool that uses Google Chrome UX Repor
 - Frontend uses React 18 with MUI; ensure your environment supports React 18.
 - (Optional) Google Cloud credentials for CrUX BigQuery access
 
-### Setup
+### Running Locally
 
-1. **Backend**
+Open **two terminals** and run the backend and frontend concurrently.
 
-   ```bash
-   cd backend
-   npm install
-   cp .env.example .env           # configure your API keys
-   npm run dev                    # start backend (will listen on port 5000)
-   ```
+#### 1. Backend
 
-2. **Frontend**
+```bash
+cd backend
+npm install
+cp .env.example .env   # add CRUX_API_KEY and other values if available
+npm run dev            # starts Express on http://localhost:5000
+```
 
-   ```bash
-   cd ../frontend
-   npm install
-   # if backend is exposed on a different host/port (e.g. codespace
-   # preview URL) set the API base URL via an environment variable
-   # before starting:
-   #
-   #   export VITE_API_BASE_URL="https://1234-5000.preview.app.github.dev"
-   #
-   npm run dev                    # start frontend (default port 5173)
-   ```
+#### 2. Frontend
 
-3. Open `http://localhost:5173` in your browser and start entering URL(s) to fetch CrUX metrics.
+```bash
+cd frontend
+npm install
+npm run dev            # starts Vite dev server on http://localhost:5173
+```
+
+Open `http://localhost:5173` in your browser.
+
+---
+
+### ✅ No CORS Setup Required (Local)
+
+The Vite dev server includes a built-in **reverse proxy** configured in [frontend/vite.config.js](frontend/vite.config.js). Any request the frontend makes to `/api/*` is automatically forwarded to `http://127.0.0.1:5000`, so the browser never sees a cross-origin request and **no CORS errors occur** out of the box.
+
+Additionally, the Express backend already sets permissive CORS headers (`origin: true`) for development, so direct API calls (e.g. from Postman or curl) will also work without issues.
+
+#### Running in a Remote Environment (GitHub Codespaces / Gitpod)
+
+When the backend is exposed on a remote preview URL (e.g. `https://xxxx-5000.preview.app.github.dev`), the frontend proxy target must be updated. Set the `VITE_API_PROXY_TARGET` environment variable **before** starting the frontend:
+
+```bash
+export VITE_API_PROXY_TARGET="https://xxxx-5000.preview.app.github.dev"
+npm run dev
+```
+
+This overrides the proxy target in `vite.config.js` and routes all `/api` calls to the correct remote backend URL, again avoiding any CORS issues in the browser.
 
 ---
 

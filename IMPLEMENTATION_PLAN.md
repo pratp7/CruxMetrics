@@ -6,6 +6,12 @@ CruxMetrics is a performance analytics tool that leverages Google Chrome UX Repo
 
 ---
 
+## Design Image
+
+![alt text](image.png)
+![alt text](image-1.png)
+![alt text](image-2.png)
+
 ## Architecture Overview
 
 ### System Design
