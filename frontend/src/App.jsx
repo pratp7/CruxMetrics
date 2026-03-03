@@ -1,5 +1,5 @@
 import React from "react";
-import { Container, Typography } from "@mui/material";
+import { Box, Container, Typography } from "@mui/material";
 
 import { MetricsProvider } from "./context/MetricsContext";
 import { CacheProvider } from "./context/CacheContext";
@@ -42,19 +42,28 @@ const App = () => (
   <MetricsProvider>
     <CacheProvider>
       <Container
-        maxWidth="md"
+        maxWidth={false}
+        disableGutters
         style={{
-          paddingTop: "2rem",
-          backgroundColor: "#fff",
+          backgroundColor: "#fafafa",
           minHeight: "100vh",
         }}
       >
-        <Typography variant="h4" gutterBottom>
-          CruxMetrics Analyzer
-        </Typography>
-        <ErrorBoundary>
-          <AppContent />
-        </ErrorBoundary>
+        <Box
+          style={{
+            width: "100%",
+            maxWidth: "1200px",
+            margin: "0 auto",
+            padding: "2rem 1rem",
+          }}
+        >
+          <Typography variant="h4" gutterBottom>
+            CruxMetrics Analyzer
+          </Typography>
+          <ErrorBoundary>
+            <AppContent />
+          </ErrorBoundary>
+        </Box>
       </Container>
     </CacheProvider>
   </MetricsProvider>
