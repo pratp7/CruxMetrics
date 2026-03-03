@@ -117,14 +117,8 @@ Styles are built with Material UI and simple CSS.
 
 1. Replace dummy data with real CrUX API calls once API key is available.
 2. Integrate BigQuery with proper credentials.
-3. Add tests (unit & E2E).
-4. Enhance filtering UI and caching strategy.
-5. Deploy using Docker or cloud platform.
+3. Enhance filtering UI and caching strategy.
 
 Refer to `IMPLEMENTATION_PLAN.md` for a full roadmap.
-
----
-
-## 📜 License
-
-MIT © CruxMetrics
+API URL (deployed to Render) - https://cruxmetrics.onrender.com
+FE URL (depoyed to Vercel) - https://crux-metrics-five.vercel.app/
